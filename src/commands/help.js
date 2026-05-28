@@ -38,7 +38,7 @@ function buildHelpEmbed(categoryKey, username) {
   const category = categories[categoryKey] || categories.general;
   return new EmbedBuilder()
     .setColor(0x5865f2)
-    .setTitle(`BUG Empire Bot | ${category.title}`)
+    .setTitle(`EmpireGuard | ${category.title}`)
     .setDescription(category.commands.join('\n'))
     .setFooter(requestFooter(username));
 }

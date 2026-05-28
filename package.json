@@ -1,7 +1,7 @@
 {
-  "name": "bug-empire-bot",
+  "name": "empireguard",
   "version": "1.0.0",
-  "description": "Discord bot for the BUG EMPIRE server with moderation, tickets, welcome messages, reaction roles, and anti-nuke protection.",
+  "description": "EmpireGuard Discord bot for the BUG EMPIRE server with moderation, tickets, welcome messages, reaction roles, and anti-nuke protection.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {

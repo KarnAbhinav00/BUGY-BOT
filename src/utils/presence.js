@@ -1,7 +1,7 @@
 const { ActivityType } = require('discord.js');
 
 const presenceList = [
-  { name: 'BUG EMPIRE', type: ActivityType.Watching },
+  { name: 'EmpireGuard monitoring BUG EMPIRE', type: ActivityType.Watching },
   { name: 'tickets and reports', type: ActivityType.Playing },
   { name: 'server events', type: ActivityType.Watching },
   { name: 'staff actions', type: ActivityType.Listening }

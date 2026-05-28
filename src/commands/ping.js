@@ -4,7 +4,7 @@ const { requestFooter } = require('../utils/embed');
 function buildPingEmbed(interactionUser, latency) {
   return new EmbedBuilder()
     .setColor(0x5865f2)
-    .setTitle('BUG Empire Bot')
+    .setTitle('EmpireGuard')
     .setDescription(`Pong. WebSocket latency: ${latency}ms`)
     .setFooter(requestFooter(interactionUser));
 }

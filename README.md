@@ -1,4 +1,4 @@
-# BUG Empire Bot
+# EmpireGuard
 
 Discord bot scaffold for the BUG EMPIRE server.
 
