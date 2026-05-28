@@ -1,0 +1,14 @@
+Transcript for #closed-ticket-0006
+
+Channel ID: 1509412222093234187
+
+Guild: 𝗕𝘂𝗴 𝗘𝗺𝗽𝗶𝗿𝗲
+
+Created: 2026-05-28T04:26:28.344Z
+
+Owner: abhinavji369
+
+[2026-05-28T04:25:17.862Z] Bugy bot#6953: <@1310836134305071106> <@&1490681320857272430>
+Title: 🎫 Ticket created: 🚨 Report Staff/Member | Description: Explain your issue clearly. A support member will join shortly.
+
+[2026-05-28T04:26:22.676Z] Bugy bot#6953: Claim trail: 1. <@1310836134305071106>

@@ -1,0 +1,13 @@
+Transcript for #ticket-0001
+
+Channel ID: 1509395275305717851
+
+Guild: 𝗕𝘂𝗴 𝗘𝗺𝗽𝗶𝗿𝗲
+
+Created: 2026-05-28T03:18:03.867Z
+
+
+
+[2026-05-28T03:17:57.608Z] BUG EMPIRE#6953: <@1310836134305071106> <@&1490681320857272430>
+Title: Ticket created | Description: Explain your issue clearly. A support member will join shortly.
+

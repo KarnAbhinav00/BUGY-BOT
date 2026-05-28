@@ -1,0 +1,12 @@
+Transcript for #ticket-0005
+
+Channel ID: 1509411284339134474
+
+Guild: 𝗕𝘂𝗴 𝗘𝗺𝗽𝗶𝗿𝗲
+
+Created: 2026-05-28T04:24:53.942Z
+
+Owner: abhinavji369
+
+[2026-05-28T04:21:34.455Z] Bugy bot#6953: <@1310836134305071106> <@&1490681320857272430>
+Title: 🎫 Ticket created: 💬 General Support | Description: Explain your issue clearly. A support member will join shortly.

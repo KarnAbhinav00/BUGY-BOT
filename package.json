@@ -1,0 +1,19 @@
+{
+  "name": "bug-empire-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for the BUG EMPIRE server with moderation, tickets, welcome messages, reaction roles, and anti-nuke protection.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "deploy": "node src/deploy-commands.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5"
+  }
+}

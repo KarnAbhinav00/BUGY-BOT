@@ -1,0 +1,99 @@
+{
+  "1274360936748290108": {
+    "prefix": "..",
+    "welcomeChannelId": "",
+    "welcomeMessage": "Welcome {user} to {server}!",
+    "leaveChannelId": "",
+    "leaveMessage": "{user} left {server}.",
+    "moderationLogChannelId": "",
+    "blockedWords": [],
+    "blockedLinks": [],
+    "protection": {
+      "enabled": true,
+      "deleteBadWords": true,
+      "deleteLinks": true,
+      "timeoutForWords": true,
+      "timeoutForLinks": true,
+      "banOnRepeat": false,
+      "timeoutMinutes": 60,
+      "logChannelId": "",
+      "heatLevel": 0,
+      "heatThreshold": 10,
+      "heatDecayMinutes": 5,
+      "lockdownMinutes": 10,
+      "lockdownUntil": 0,
+      "lockdownReason": ""
+    },
+    "autoroleIds": [],
+    "reactionRoles": [],
+    "whitelist": {
+      "ownerIds": [],
+      "adminRoleIds": [],
+      "staffRoleIds": [
+        "1490681320857272430"
+      ]
+    },
+    "greeting": {
+      "enabled": true,
+      "channelId": "",
+      "message": "Welcome {user} to {server}!"
+    },
+    "staffStats": {
+      "1310836134305071106": {
+        "messages": 22,
+        "voiceMinutes": 0,
+        "ticketsHandled": 5,
+        "claims": 3,
+        "escalations": 2
+      },
+      "1418482332960030801": {
+        "messages": 9,
+        "voiceMinutes": 0,
+        "ticketsHandled": 1,
+        "claims": 2,
+        "escalations": 0
+      },
+      "1317387152820146176": {
+        "messages": 4,
+        "voiceMinutes": 0,
+        "ticketsHandled": 0,
+        "claims": 1,
+        "escalations": 0
+      },
+      "1284877120371429422": {
+        "messages": 9,
+        "voiceMinutes": 0,
+        "ticketsHandled": 0,
+        "claims": 0,
+        "escalations": 0
+      },
+      "702443349776269406": {
+        "messages": 8,
+        "voiceMinutes": 0,
+        "ticketsHandled": 0,
+        "claims": 1,
+        "escalations": 0
+      }
+    },
+    "notes": {},
+    "ticket": {
+      "categoryId": "1490681335151591525",
+      "supportRoleId": "1500377466298962121",
+      "logChannelId": "1490681354080227439",
+      "panelChannelId": "1490681354080227439",
+      "panelMessageId": "1509473849647956008",
+      "counter": 10,
+      "panels": [],
+      "tickets": {},
+      "inactivityMinutes": 30,
+      "inactivityReminderMinutes": 10
+    },
+    "antiNuke": {
+      "enabled": false,
+      "threshold": 3,
+      "punishment": "timeout",
+      "timeoutMinutes": 60,
+      "logChannelId": ""
+    }
+  }
+}

@@ -1,0 +1,22 @@
+Transcript for #ticket-0010
+
+Channel ID: 1509473885165195335
+
+Guild: 𝗕𝘂𝗴 𝗘𝗺𝗽𝗶𝗿𝗲
+
+Created: 2026-05-28T08:32:58.515Z
+
+Owner: abhinavji369
+
+[2026-05-28T08:30:19.637Z] Bugy bot#6953: <@1310836134305071106> <@&1500377466298962121>
+Title: 🎫 Ticket created: 🎁 Giveaway Claim | Description: Explain your issue clearly. A support member will join shortly.
+
+[2026-05-28T08:30:24.310Z] Bugy bot#6953: Claim trail: 1. <@1310836134305071106>
+
+[2026-05-28T08:30:29.290Z] Bugy bot#6953: Claim trail: 1. <@1310836134305071106> | 2. <@702443349776269406>
+
+[2026-05-28T08:32:21.638Z] Bugy bot#6953: (no text)
+Title: 🎫 Ticket closed | Description: This ticket is closed now. Use the buttons below if it needs to be reopened or removed.
+
+[2026-05-28T08:32:28.885Z] Bugy bot#6953: (no text)
+Title: 🎫 Ticket reopened | Description: Reopened by abhinavji369. Continue the conversation here.
