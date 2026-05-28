@@ -67,3 +67,19 @@ loadCommands();
 loadEvents();
 
 client.login(config.token);
+
+const http = require('node:http');
+const serverPort = process.env.PORT || 3000;
+const redirectUrl = 'https://discord.gg/bugempire';
+
+const webServer = http.createServer((req, res) => {
+  res.writeHead(302, {
+    Location: redirectUrl,
+    'Content-Type': 'text/html; charset=utf-8'
+  });
+  res.end(`<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${redirectUrl}"></head><body><p>Redirecting to <a href="${redirectUrl}">${redirectUrl}</a>...</p></body></html>`);
+});
+
+webServer.listen(serverPort, () => {
+  console.log(`Web redirect server listening on port ${serverPort}`);
+});
