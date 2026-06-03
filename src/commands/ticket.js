@@ -98,11 +98,28 @@ function getTicketAccessRoleIds(settings) {
   ].filter(Boolean))];
 }
 
+function normalizeTicketChannelName(rawName) {
+  return String(rawName || '')
+    .replace(/^(?:✅\s*)+/g, '')
+    .replace(/^(?:(?:close|closed)-)+/i, '')
+    .trim();
+}
+
+function formatTicketClaimName(rawName) {
+  const cleanName = normalizeTicketChannelName(rawName);
+  return `✅ ${cleanName}`.slice(0, 100);
+}
+
+function formatTicketClosedName(rawName) {
+  const cleanName = normalizeTicketChannelName(rawName);
+  return `closed-${cleanName}`.slice(0, 100);
+}
+
 async function lockTicketChannel(channel, settings) {
   const ownerMatch = channel.topic?.match(/^ticket-owner:(\d+)$/);
   const ownerId = ownerMatch?.[1];
 
-  await channel.setName(`closed-${channel.name}`.slice(0, 100)).catch(() => null);
+  await channel.setName(formatTicketClosedName(channel.name)).catch(() => null);
 
   const accessRoleIds = getTicketAccessRoleIds(settings);
 
@@ -127,7 +144,7 @@ async function reopenTicketChannel(channel, reopenedBy, settings) {
   const ownerMatch = channel.topic?.match(/^ticket-owner:(\d+)$/);
   const ownerId = ownerMatch?.[1];
 
-  await channel.setName(channel.name.replace(/^closed-/, '').slice(0, 100)).catch(() => null);
+  await channel.setName(normalizeTicketChannelName(channel.name).slice(0, 100)).catch(() => null);
 
   const accessRoleIds = getTicketAccessRoleIds(settings);
 
@@ -300,7 +317,12 @@ module.exports = {
     .addSubcommand((subcommand) => subcommand
       .setName('whitelist')
       .setDescription('Whitelist the current ticket from inactivity auto-close.')
-      .addBooleanOption((option) => option.setName('enabled').setDescription('Enable or disable inactivity whitelisting').setRequired(false))),
+      .addBooleanOption((option) => option.setName('enabled').setDescription('Enable or disable inactivity whitelisting').setRequired(false)))
+    .addSubcommand((subcommand) => subcommand
+      .setName('inactivity')
+      .setDescription('Set ticket inactivity auto-close timeout.')
+      .addIntegerOption((option) => option.setName('minutes').setDescription('Auto-close after minutes').setMinValue(1).setRequired(true))
+      .addIntegerOption((option) => option.setName('reminder_minutes').setDescription('Reminder before auto-close in minutes').setMinValue(1).setRequired(false))),
   async execute(interaction) {
     const settings = getGuildSettings(interaction.guild.id);
     const subcommand = interaction.options.getSubcommand();
@@ -371,6 +393,28 @@ module.exports = {
       });
 
       await interaction.reply({ content: `Ticket inactivity whitelist ${currentSetting ? 'enabled' : 'disabled'}.`, ephemeral: true });
+      return;
+    }
+
+    if (subcommand === 'inactivity') {
+      if (!interaction.memberPermissions.has(PermissionsBitField.Flags.ManageChannels)) {
+        await interaction.reply({ content: 'You need Manage Channels to configure ticket inactivity.', ephemeral: true });
+        return;
+      }
+
+      const minutes = interaction.options.getInteger('minutes', true);
+      const reminderMinutes = interaction.options.getInteger('reminder_minutes');
+
+      updateGuildSettings(interaction.guild.id, (current) => ({
+        ...current,
+        ticket: {
+          ...current.ticket,
+          inactivityMinutes: minutes,
+          inactivityReminderMinutes: reminderMinutes ?? current.ticket.inactivityReminderMinutes
+        }
+      }));
+
+      await interaction.reply({ content: `Ticket inactivity timeout set to ${minutes} minutes${reminderMinutes ? ` with a ${reminderMinutes}-minute reminder` : ''}.`, ephemeral: true });
       return;
     }
 
@@ -539,6 +583,11 @@ module.exports = {
         ...current,
         claims: (current.claims || 0) + 1
       }));
+
+      const claimedName = formatTicketClaimName(interaction.channel.name);
+      if (interaction.channel.name !== claimedName) {
+        await interaction.channel.setName(claimedName).catch(() => null);
+      }
 
       const updatedTicket = getTicketRecord(getGuildSettings(interaction.guild.id), interaction.channel.id);
       await interaction.reply({ content: `Ticket claimed by ${interaction.user.tag}.`, ephemeral: true });
@@ -747,11 +796,36 @@ module.exports = {
       return;
     }
 
+    if (subcommand === 'inactivity') {
+      if (!message.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) {
+        await message.reply('You need Manage Channels to configure ticket inactivity.').catch(() => null);
+        return;
+      }
+
+      const minutes = Number(args[2]);
+      const reminderMinutes = Number(args[3]);
+
+      if (!Number.isFinite(minutes) || minutes < 1) {
+        await message.reply('Usage: !ticket inactivity <minutes> [reminderMinutes]').catch(() => null);
+        return;
+      }
+
+      updateGuildSettings(message.guild.id, (current) => ({
+        ...current,
+        ticket: {
+          ...current.ticket,
+          inactivityMinutes: Math.round(minutes),
+          inactivityReminderMinutes: Number.isFinite(reminderMinutes) && reminderMinutes >= 1 ? Math.round(reminderMinutes) : current.ticket.inactivityReminderMinutes
+        }
+      }));
+
+      await message.reply({ content: `Ticket inactivity timeout set to ${Math.round(minutes)} minutes${Number.isFinite(reminderMinutes) && reminderMinutes >= 1 ? ` with a ${Math.round(reminderMinutes)}-minute reminder` : ''}.`, allowedMentions: { repliedUser: false } }).catch(() => null);
+      return;
+    }
+
     if (subcommand === 'reopen') {
       const settings = getGuildSettings(message.guild.id);
       const ticketRecord = getTicketRecord(settings, message.channel.id);
-
-      if (!isTicketChannel(message.channel) || !ticketRecord) {
         await message.reply('This command only works inside a ticket channel.').catch(() => null);
         return;
       }

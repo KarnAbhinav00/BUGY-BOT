@@ -11,15 +11,27 @@ function parseDuration(value) {
     return null;
   }
 
-  const match = input.match(/^(\d+)([smhd])$/);
-  if (!match) {
-    return null;
+  const normalized = input.replace(/\s+/g, '');
+  const durationPatterns = [
+    { regex: /^(\d+)(?:\.(\d+))?(s|sec|secs|second|seconds)$/, multiplier: 1000 },
+    { regex: /^(\d+)(?:\.(\d+))?(m|min|mins|minute|minutes)$/, multiplier: 60_000 },
+    { regex: /^(\d+)(?:\.(\d+))?(h|hr|hrs|hour|hours)$/, multiplier: 3_600_000 },
+    { regex: /^(\d+)(?:\.(\d+))?(d|day|days)$/, multiplier: 86_400_000 }
+  ];
+
+  for (const { regex, multiplier } of durationPatterns) {
+    const match = normalized.match(regex);
+    if (!match) continue;
+
+    const amount = Number(`${match[1]}${match[2] ? `.${match[2]}` : ''}`);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return null;
+    }
+
+    return Math.round(amount * multiplier);
   }
 
-  const amount = Number(match[1]);
-  const unit = match[2];
-  const multipliers = { s: 1000, m: 60_000, h: 3_600_000, d: 86_400_000 };
-  return amount * multipliers[unit];
+  return null;
 }
 
 async function scheduleUnban(guild, userId, durationMs) {

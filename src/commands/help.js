@@ -18,7 +18,7 @@ const categories = {
     label: 'Tickets',
     description: 'Open and manage support tickets',
     title: 'Ticket Commands',
-    commands: ['`/ticket panel` - create the ticket panel', '`/ticket close` - close the current ticket', '`/ticket whitelist` - disable inactivity auto-close on a ticket', 'Ticket buttons: `Claim`, `Close`, `Delete and Transcript`']
+    commands: ['`/ticket panel` - create the ticket panel', '`/ticket close` - close the current ticket', '`/ticket inactivity` - set inactivity timeout for tickets', '`/ticket whitelist` - disable inactivity auto-close on a ticket', 'Ticket buttons: `Claim`, `Close`, `Delete and Transcript`']
   },
   moderation: {
     label: 'Moderation',

@@ -38,7 +38,7 @@ module.exports = {
     }
 
     const user = message.mentions.users.first();
-    const timeMatch = message.content.match(/\b(\d+[smhd]|455d|perm|permanent|forever)\b/i);
+    const timeMatch = message.content.match(/\b(\d+(?:\.\d+)?(?:s|sec|secs|second|seconds|m|min|mins|minute|minutes|h|hr|hrs|hour|hours|d|day|days)|455d|perm|permanent|forever)\b/i);
 
     if (!user || !timeMatch) {
       await message.reply({ content: 'Usage: !timeout @user 2d reason', allowedMentions: { repliedUser: false } }).catch(() => null);

@@ -1,13 +1,18 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { getGuildSettings, updateGuildSettings } = require('../storage/guild-settings');
+const { parseDuration } = require('../utils/mod-actions');
 
 function parseDurationMinutes(value) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed < 1) {
+  if (typeof value === 'number' && Number.isFinite(value) && value >= 1) {
+    return Math.round(value);
+  }
+
+  const durationMs = parseDuration(String(value));
+  if (!Number.isFinite(durationMs) || durationMs <= 0) {
     return 60;
   }
 
-  return parsed;
+  return Math.max(1, Math.round(durationMs / 60_000));
 }
 
 module.exports = {

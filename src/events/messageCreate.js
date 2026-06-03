@@ -4,8 +4,14 @@ const { getGuildSettings } = require('../storage/guild-settings');
 const { appendTicketEvent, isTicketChannel, touchTicketActivity } = require('../utils/ticket-history');
 const { isLockdownActive } = require('../utils/raid-heat');
 const { isWhitelistedMember } = require('../utils/permissions');
-const { banMember, kickMember, timeoutMember } = require('../utils/mod-actions');
+const { banMember, kickMember, timeoutMember, parseDuration } = require('../utils/mod-actions');
 const { recordStaffMessage } = require('../utils/staff-stats');
+
+const spamTracker = new Map();
+const SPAM_WINDOW_MS = 15_000;
+const SPAM_REPEAT_THRESHOLD = 3;
+const SPAM_INITIAL_TIMEOUT_MINUTES = 5;
+const SPAM_MAX_TIMEOUT_MINUTES = 60;
 
 function getMentionPrefix(clientUserId) {
   return new RegExp(`^<@!?${clientUserId}>\\s*`, 'i');
@@ -15,9 +21,50 @@ function normalizeText(value) {
   return String(value || '').toLowerCase();
 }
 
+function normalizeSpamContent(content) {
+  return String(content || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function getSpamMuteDuration(message) {
+  const content = message.content?.trim() || '';
+  const attachments = message.attachments?.size ? [...message.attachments.values()].map((attachment) => attachment.url).sort().join('|') : '';
+  const normalized = content ? normalizeSpamContent(content) : attachments ? `attachment:${attachments}` : '';
+
+  if (!normalized) {
+    return null;
+  }
+
+  const key = `${message.guild.id}:${message.author.id}`;
+  const now = Date.now();
+  const record = spamTracker.get(key) || { content: null, count: 0, lastAt: 0, lastMuteDuration: 0, lastMuteAt: 0 };
+
+  if (record.content === normalized && now - record.lastAt <= SPAM_WINDOW_MS) {
+    record.count += 1;
+  } else {
+    record.content = normalized;
+    record.count = 1;
+  }
+
+  record.lastAt = now;
+
+  if (record.count >= SPAM_REPEAT_THRESHOLD) {
+    const baseTimeout = record.lastMuteDuration || SPAM_INITIAL_TIMEOUT_MINUTES;
+    const timeoutMinutes = Math.min(record.lastMuteDuration ? Math.min(baseTimeout * 2, SPAM_MAX_TIMEOUT_MINUTES) : SPAM_INITIAL_TIMEOUT_MINUTES, SPAM_MAX_TIMEOUT_MINUTES);
+
+    record.lastMuteDuration = timeoutMinutes;
+    record.lastMuteAt = now;
+    record.count = 0;
+    spamTracker.set(key, record);
+    return timeoutMinutes;
+  }
+
+  spamTracker.set(key, record);
+  return null;
+}
+
 function isDurationToken(value) {
   const text = String(value || '').trim().toLowerCase();
-  return /^(\d+)([smhd])$/.test(text) || ['perm', 'permanent', 'forever', '455d'].includes(text);
+  return parseDuration(text) !== null || ['perm', 'permanent', 'forever', '455d'].includes(text);
 }
 
 async function handleReplyShortcut(message, settings) {
@@ -133,6 +180,17 @@ module.exports = {
         timestamp: Date.now()
       });
       touchTicketActivity(message.guild.id, message.channel.id);
+    }
+
+    if (!isAdmin && !isWhitelistedMember(message.member, settings)) {
+      const spamTimeoutMinutes = getSpamMuteDuration(message);
+      if (spamTimeoutMinutes) {
+        if (message.member?.moderatable) {
+          await message.member.timeout(spamTimeoutMinutes * 60_000, 'Auto spam mute').catch(() => null);
+          await message.channel.send({ content: `${message.author}, you have been muted for ${spamTimeoutMinutes} minute(s) due to repeated spam.`, allowedMentions: { repliedUser: false } }).catch(() => null);
+        }
+        return;
+      }
     }
 
     if (!commandText && protection.enabled !== false && isLockdownActive(settings) && !isWhitelistedMember(message.member, settings) && !isAdmin) {

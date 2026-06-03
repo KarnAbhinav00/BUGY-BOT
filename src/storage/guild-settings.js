@@ -55,7 +55,7 @@ const defaultGuildSettings = {
     counter: 0,
     panels: [],
     tickets: {},
-    inactivityMinutes: 30,
+    inactivityMinutes: 1440,
     inactivityReminderMinutes: 10
   },
   antiNuke: {
