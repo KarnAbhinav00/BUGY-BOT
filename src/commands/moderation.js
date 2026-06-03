@@ -247,37 +247,47 @@ module.exports = {
     if (subcommand === 'timeout') {
       const minutes = parseDurationMinutes(args[2]);
       await member.timeout(minutes * 60_000, reason).catch(() => null);
-        await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
-          action: 'Timeout',
-          target: `${user.tag} (${user.id})`,
-          moderator: message.author.tag,
-          reason,
-          duration: `${minutes} minute(s)`,
-          channel: `${message.channel.name || message.channel.id}`
-        });
+      await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
+        action: 'Timeout',
+        target: `${user.tag} (${user.id})`,
+        moderator: message.author.tag,
+        reason,
+        duration: `${minutes} minute(s)`,
+        channel: `${message.channel.name || message.channel.id}`
+      });
+
+      await message.reply({ content: `Timed out ${user.tag} for ${minutes} minutes.`, allowedMentions: { repliedUser: false } }).catch(() => null);
+      return;
+    }
 
     if (subcommand === 'ban') {
       await message.guild.members.ban(user.id, { reason }).catch(() => null);
-        await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
-          action: 'Ban',
-          target: `${user.tag} (${user.id})`,
-          moderator: message.author.tag,
-          reason,
-          duration: 'Permanent',
-          channel: `${message.channel.name || message.channel.id}`
-        });
+      await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
+        action: 'Ban',
+        target: `${user.tag} (${user.id})`,
+        moderator: message.author.tag,
+        reason,
+        duration: 'Permanent',
+        channel: `${message.channel.name || message.channel.id}`
+      });
+
+      await message.reply({ content: `Banned ${user.tag}.`, allowedMentions: { repliedUser: false } }).catch(() => null);
+      return;
     }
 
     if (subcommand === 'kick') {
       await member.kick(reason).catch(() => null);
-        await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
-          action: 'Kick',
-          target: `${user.tag} (${user.id})`,
-          moderator: message.author.tag,
-          reason,
-          duration: 'N/A',
-          channel: `${message.channel.name || message.channel.id}`
-        });
+      await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
+        action: 'Kick',
+        target: `${user.tag} (${user.id})`,
+        moderator: message.author.tag,
+        reason,
+        duration: 'N/A',
+        channel: `${message.channel.name || message.channel.id}`
+      });
+
+      await message.reply({ content: `Kicked ${user.tag}.`, allowedMentions: { repliedUser: false } }).catch(() => null);
+      return;
     }
 
     if (subcommand === 'warn') {
