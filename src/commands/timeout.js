@@ -1,5 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { timeoutMember } = require('../utils/mod-actions');
+const { getGuildSettings } = require('../storage/guild-settings');
+const { logModerationAction } = require('../utils/mod-log');
 
 function parseReason(message) {
   return message.content.replace(/^\S+\s+<@!?\d+>\s*\S+\s*/i, '').trim() || 'No reason provided';
@@ -29,6 +31,14 @@ module.exports = {
     }
 
     await timeoutMember(member, time, reason);
+    await logModerationAction(interaction.guild, getGuildSettings(interaction.guild.id), {
+      action: 'Timeout',
+      target: `${user.tag} (${user.id})`,
+      moderator: interaction.user.tag,
+      reason,
+      duration: time,
+      channel: `${interaction.channel.name || interaction.channel.id}`
+    });
     await interaction.reply({ embeds: [new EmbedBuilder().setColor(0x5865f2).setTitle('Member timed out').setDescription(`User: ${user.tag}\nTime: ${time}\nReason: ${reason}`)], ephemeral: true });
   },
   async handleMessage(message) {
@@ -54,6 +64,14 @@ module.exports = {
     const time = timeMatch[1];
     const reason = parseReason(message);
     await timeoutMember(member, time, reason);
+    await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
+      action: 'Timeout',
+      target: `${user.tag} (${user.id})`,
+      moderator: message.author.tag,
+      reason,
+      duration: time,
+      channel: `${message.channel.name || message.channel.id}`
+    });
     await message.reply({ embeds: [new EmbedBuilder().setColor(0x5865f2).setTitle('Member timed out').setDescription(`User: ${user.tag}\nTime: ${time}\nReason: ${reason}`)], allowedMentions: { repliedUser: false } }).catch(() => null);
   }
 };

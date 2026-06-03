@@ -5,6 +5,7 @@ const { appendTicketEvent, isTicketChannel, touchTicketActivity } = require('../
 const { isLockdownActive } = require('../utils/raid-heat');
 const { isWhitelistedMember } = require('../utils/permissions');
 const { banMember, kickMember, timeoutMember, parseDuration } = require('../utils/mod-actions');
+const { logModerationAction } = require('../utils/mod-log');
 const { recordStaffMessage } = require('../utils/staff-stats');
 
 const spamTracker = new Map();
@@ -94,6 +95,13 @@ async function handleReplyShortcut(message, settings) {
   if (command === 'k' || command === 'kick') {
     const reason = (isDurationToken(maybeTime) ? reasonParts : [maybeTime, ...reasonParts]).filter(Boolean).join(' ') || 'No reason provided';
     await kickMember(targetMember, reason);
+    await logModerationAction(message.guild, settings, {
+      action: 'Kick',
+      target: `${targetMember.user.tag} (${targetMember.user.id})`,
+      moderator: message.author.tag,
+      reason,
+      channel: `${message.channel.name || message.channel.id}`
+    });
     await message.reply({ content: `👢 Kicked ${targetMember.user.tag}.`, allowedMentions: { repliedUser: false } }).catch(() => null);
     return true;
   }
@@ -102,6 +110,14 @@ async function handleReplyShortcut(message, settings) {
     const time = isDurationToken(maybeTime) ? maybeTime : '60m';
     const reason = (isDurationToken(maybeTime) ? reasonParts : [maybeTime, ...reasonParts]).filter(Boolean).join(' ') || 'No reason provided';
     await timeoutMember(targetMember, time, reason);
+    await logModerationAction(message.guild, settings, {
+      action: 'Timeout',
+      target: `${targetMember.user.tag} (${targetMember.user.id})`,
+      moderator: message.author.tag,
+      reason,
+      duration: time,
+      channel: `${message.channel.name || message.channel.id}`
+    });
     await message.reply({ content: `⏳ Timed out ${targetMember.user.tag} for ${time}.`, allowedMentions: { repliedUser: false } }).catch(() => null);
     return true;
   }
@@ -110,12 +126,27 @@ async function handleReplyShortcut(message, settings) {
     const time = isDurationToken(maybeTime) ? maybeTime : '455d';
     const reason = (isDurationToken(maybeTime) ? reasonParts : [maybeTime, ...reasonParts]).filter(Boolean).join(' ') || 'No reason provided';
     await banMember(message, targetMember.user, time, reason);
+    await logModerationAction(message.guild, settings, {
+      action: 'Ban',
+      target: `${targetMember.user.tag} (${targetMember.user.id})`,
+      moderator: message.author.tag,
+      reason,
+      duration: time,
+      channel: `${message.channel.name || message.channel.id}`
+    });
     await message.reply({ content: `🚫 Banned ${targetMember.user.tag} (${time}).`, allowedMentions: { repliedUser: false } }).catch(() => null);
     return true;
   }
 
   if (command === 'w' || command === 'warn') {
     const reason = ([maybeTime, ...reasonParts]).filter(Boolean).join(' ') || 'No reason provided';
+    await logModerationAction(message.guild, settings, {
+      action: 'Warn',
+      target: `${targetMember.user.tag} (${targetMember.user.id})`,
+      moderator: message.author.tag,
+      reason,
+      channel: `${message.channel.name || message.channel.id}`
+    });
     await message.reply({ content: `⚠️ Warned ${targetMember.user.tag}: ${reason}`, allowedMentions: { repliedUser: false } }).catch(() => null);
     return true;
   }
@@ -187,6 +218,14 @@ module.exports = {
       if (spamTimeoutMinutes) {
         if (message.member?.moderatable) {
           await message.member.timeout(spamTimeoutMinutes * 60_000, 'Auto spam mute').catch(() => null);
+          await logModerationAction(message.guild, settings, {
+            action: 'Spam mute',
+            target: `${message.author.tag} (${message.author.id})`,
+            moderator: message.client.user.tag,
+            reason: 'Repeated identical messages detected',
+            duration: `${spamTimeoutMinutes} minute(s)`,
+            channel: `${message.channel.name || message.channel.id}`
+          });
           await message.channel.send({ content: `${message.author}, you have been muted for ${spamTimeoutMinutes} minute(s) due to repeated spam.`, allowedMentions: { repliedUser: false } }).catch(() => null);
         }
         return;
@@ -227,6 +266,14 @@ module.exports = {
 
       if (shouldTimeout && message.member?.moderatable) {
         await message.member.timeout((Number(protection.timeoutMinutes || 60)) * 60000, `Auto protection: ${matchedValue}`).catch(() => null);
+        await logModerationAction(message.guild, settings, {
+          action: 'Auto moderation',
+          target: `${message.author.tag} (${message.author.id})`,
+          moderator: message.client.user.tag,
+          reason: `Matched blocked ${isLink ? 'link' : 'word'}: ${matchedValue}`,
+          duration: `${Number(protection.timeoutMinutes || 60)} minute(s)`,
+          channel: `${message.channel.name || message.channel.id}`
+        });
       }
 
       const logChannel = protection.logChannelId

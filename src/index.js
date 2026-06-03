@@ -66,6 +66,12 @@ function loadEvents() {
 loadCommands();
 loadEvents();
 
+try {
+  require('./deploy-commands');
+} catch (error) {
+  console.error('Failed to deploy commands on startup:', error);
+}
+
 client.login(config.token);
 
 const http = require('node:http');

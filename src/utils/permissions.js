@@ -12,13 +12,25 @@ function isWhitelistedMember(member, settings) {
   const adminUserIds = settings.whitelist?.adminUserIds || [];
   const staffRoleIds = [...new Set([...(settings.whitelist?.staffRoleIds || []), '1490684254169075913'])];
   const staffUserIds = settings.whitelist?.staffUserIds || [];
+  const helperRoleIds = settings.whitelist?.helperRoleIds || [];
+  const helperUserIds = settings.whitelist?.helperUserIds || [];
+  const chatModRoleIds = settings.whitelist?.chatModRoleIds || [];
+  const chatModUserIds = settings.whitelist?.chatModUserIds || [];
+  const vcModRoleIds = settings.whitelist?.vcModRoleIds || [];
+  const vcModUserIds = settings.whitelist?.vcModUserIds || [];
 
   return ownerIds.includes(member.id)
     || adminUserIds.includes(member.id)
     || staffUserIds.includes(member.id)
+    || helperUserIds.includes(member.id)
+    || chatModUserIds.includes(member.id)
+    || vcModUserIds.includes(member.id)
     || member.permissions.has('Administrator')
     || hasRoleId(member, adminRoleIds)
-    || hasRoleId(member, staffRoleIds);
+    || hasRoleId(member, staffRoleIds)
+    || hasRoleId(member, helperRoleIds)
+    || hasRoleId(member, chatModRoleIds)
+    || hasRoleId(member, vcModRoleIds);
 }
 
 function getEscalationRole(guild, settings, member) {

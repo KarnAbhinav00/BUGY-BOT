@@ -1,5 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { kickMember } = require('../utils/mod-actions');
+const { getGuildSettings } = require('../storage/guild-settings');
+const { logModerationAction } = require('../utils/mod-log');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -23,6 +25,13 @@ module.exports = {
     }
 
     await kickMember(member, reason);
+    await logModerationAction(interaction.guild, getGuildSettings(interaction.guild.id), {
+      action: 'Kick',
+      target: `${user.tag} (${user.id})`,
+      moderator: interaction.user.tag,
+      reason,
+      channel: `${interaction.channel.name || interaction.channel.id}`
+    });
     await interaction.reply({ embeds: [new EmbedBuilder().setColor(0xf1c40f).setTitle('Member kicked').setDescription(`User: ${user.tag}\nReason: ${reason}`)], ephemeral: true });
   },
   async handleMessage(message) {
@@ -45,6 +54,13 @@ module.exports = {
 
     const reason = message.content.replace(/^\S+\s+<@!?\d+>\s*/i, '').trim() || 'No reason provided';
     await kickMember(member, reason);
+    await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
+      action: 'Kick',
+      target: `${user.tag} (${user.id})`,
+      moderator: message.author.tag,
+      reason,
+      channel: `${message.channel.name || message.channel.id}`
+    });
     await message.reply({ embeds: [new EmbedBuilder().setColor(0xf1c40f).setTitle('Member kicked').setDescription(`User: ${user.tag}\nReason: ${reason}`)], allowedMentions: { repliedUser: false } }).catch(() => null);
   }
 };

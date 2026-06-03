@@ -1,5 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { banMember } = require('../utils/mod-actions');
+const { getGuildSettings } = require('../storage/guild-settings');
+const { logModerationAction } = require('../utils/mod-log');
 
 function parseTargetAndReason(message) {
   const user = message.mentions.users.first();
@@ -35,6 +37,15 @@ module.exports = {
       .setTitle('Ban issued')
       .setDescription(`User: ${user.tag}\nDuration: ${result.durationLabel}\nReason: ${reason}`);
 
+    await logModerationAction(interaction.guild, getGuildSettings(interaction.guild.id), {
+      action: 'Ban',
+      target: `${user.tag} (${user.id})`,
+      moderator: interaction.user.tag,
+      reason,
+      duration: result.durationLabel,
+      channel: `${interaction.channel.name || interaction.channel.id}`
+    });
+
     await interaction.reply({ embeds: [embed], ephemeral: true });
   },
   async handleMessage(message) {
@@ -55,6 +66,15 @@ module.exports = {
       .setColor(0xe74c3c)
       .setTitle('Ban issued')
       .setDescription(`User: ${user.tag}\nDuration: ${result.durationLabel}\nReason: ${reason}`);
+
+    await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
+      action: 'Ban',
+      target: `${user.tag} (${user.id})`,
+      moderator: message.author.tag,
+      reason,
+      duration: result.durationLabel,
+      channel: `${message.channel.name || message.channel.id}`
+    });
 
     await message.reply({ embeds: [embed], allowedMentions: { repliedUser: false } }).catch(() => null);
   }

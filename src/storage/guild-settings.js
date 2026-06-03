@@ -35,7 +35,13 @@ const defaultGuildSettings = {
     adminRoleIds: [],
     adminUserIds: [],
     staffRoleIds: [],
-    staffUserIds: []
+    staffUserIds: [],
+    helperRoleIds: [],
+    helperUserIds: [],
+    chatModRoleIds: [],
+    chatModUserIds: [],
+    vcModRoleIds: [],
+    vcModUserIds: []
   },
   greeting: {
     enabled: true,

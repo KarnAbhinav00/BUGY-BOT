@@ -1,4 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { getGuildSettings } = require('../storage/guild-settings');
+const { logModerationAction } = require('../utils/mod-log');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -15,6 +17,13 @@ module.exports = {
     const user = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason', true);
     const embed = new EmbedBuilder().setColor(0xf1c40f).setTitle('Warning issued').setDescription(`Member: ${user.tag}\nModerator: ${interaction.user.tag}\nReason: ${reason}`);
+    await logModerationAction(interaction.guild, getGuildSettings(interaction.guild.id), {
+      action: 'Warn',
+      target: `${user.tag} (${user.id})`,
+      moderator: interaction.user.tag,
+      reason,
+      channel: `${interaction.channel.name || interaction.channel.id}`
+    });
     await interaction.reply({ embeds: [embed], ephemeral: true });
   },
   async handleMessage(message) {
@@ -31,6 +40,13 @@ module.exports = {
 
     const reason = message.content.replace(/^\S+\s+<@!?\d+>\s*/i, '').trim() || 'No reason provided';
     const embed = new EmbedBuilder().setColor(0xf1c40f).setTitle('Warning issued').setDescription(`Member: ${user.tag}\nModerator: ${message.author.tag}\nReason: ${reason}`);
+    await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
+      action: 'Warn',
+      target: `${user.tag} (${user.id})`,
+      moderator: message.author.tag,
+      reason,
+      channel: `${message.channel.name || message.channel.id}`
+    });
     await message.reply({ embeds: [embed], allowedMentions: { repliedUser: false } }).catch(() => null);
   }
 };

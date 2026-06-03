@@ -1,5 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { purgeMessages } = require('../utils/mod-actions');
+const { getGuildSettings } = require('../storage/guild-settings');
+const { logModerationAction } = require('../utils/mod-log');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -14,6 +16,14 @@ module.exports = {
 
     const amount = interaction.options.getInteger('amount', true);
     const deleted = await purgeMessages(interaction.channel, amount);
+    await logModerationAction(interaction.guild, getGuildSettings(interaction.guild.id), {
+      action: 'Purge',
+      target: `Channel ${interaction.channel.name || interaction.channel.id}`,
+      moderator: interaction.user.tag,
+      reason: `Deleted ${deleted} messages`,
+      duration: 'N/A',
+      channel: `${interaction.channel.name || interaction.channel.id}`
+    });
     await interaction.reply({ embeds: [new EmbedBuilder().setColor(0x5865f2).setTitle('Messages purged').setDescription(`Deleted ${deleted} messages.`)], ephemeral: true });
   },
   async handleMessage(message) {
@@ -29,6 +39,14 @@ module.exports = {
     }
 
     const deleted = await purgeMessages(message.channel, amount);
+    await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
+      action: 'Purge',
+      target: `Channel ${message.channel.name || message.channel.id}`,
+      moderator: message.author.tag,
+      reason: `Deleted ${deleted} messages`,
+      duration: 'N/A',
+      channel: `${message.channel.name || message.channel.id}`
+    });
     await message.reply({ embeds: [new EmbedBuilder().setColor(0x5865f2).setTitle('Messages purged').setDescription(`Deleted ${deleted} messages.`)], allowedMentions: { repliedUser: false } }).catch(() => null);
   }
 };

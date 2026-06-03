@@ -236,35 +236,38 @@ async function createTicketChannel(guild, member, settings, reasonValue = 'gener
 
 async function closeTicketChannel(channel, closedBy, reason, settings, options = {}) {
   const deleteChannel = Boolean(options.deleteChannel);
-  const transcript = await buildTranscript(channel);
-  const transcriptFile = new AttachmentBuilder(transcript.filePath);
   const ticketRecord = getTicketRecord(settings, channel.id);
-  const summary = new EmbedBuilder()
-    .setColor(0xe67e22)
-    .setTitle('🎫 Ticket closed')
-    .setDescription([
-      `Channel: ${channel.name}`,
-      `Closed by: ${closedBy.tag}`,
-      `Reason: ${reason || 'No reason provided'}`,
-      `Messages saved: ${transcript.messageCount}`
-    ].join('\n'))
-    .setTimestamp();
 
-  const logChannel = settings.ticket.logChannelId ? channel.guild.channels.cache.get(settings.ticket.logChannelId) : null;
-  const destination = logChannel?.isTextBased() ? logChannel : channel;
-  await destination.send({ embeds: [summary], files: [transcriptFile] }).catch(() => null);
-  const recipients = new Set([ticketRecord?.ownerId, ...(ticketRecord?.participants || [])].filter(Boolean));
+  if (deleteChannel) {
+    const transcript = await buildTranscript(channel);
+    const transcriptFile = new AttachmentBuilder(transcript.filePath);
+    const summary = new EmbedBuilder()
+      .setColor(0xe67e22)
+      .setTitle('🎫 Ticket deleted and transcript saved')
+      .setDescription([
+        `Channel: ${channel.name}`,
+        `Deleted by: ${closedBy.tag}`,
+        `Reason: ${reason || 'No reason provided'}`,
+        `Messages saved: ${transcript.messageCount}`
+      ].join('\n'))
+      .setTimestamp();
 
-  for (const userId of recipients) {
-    const user = await channel.client.users.fetch(userId).catch(() => null);
-    if (!user) {
-      continue;
+    const logChannel = settings.ticket.logChannelId ? channel.guild.channels.cache.get(settings.ticket.logChannelId) : null;
+    const destination = logChannel?.isTextBased() ? logChannel : channel;
+    await destination.send({ embeds: [summary], files: [transcriptFile] }).catch(() => null);
+
+    const recipients = new Set([ticketRecord?.ownerId, ...(ticketRecord?.participants || [])].filter(Boolean));
+    for (const userId of recipients) {
+      const user = await channel.client.users.fetch(userId).catch(() => null);
+      if (!user) {
+        continue;
+      }
+
+      await user.send({
+        content: `Your ticket transcript for #${channel.name} is attached.`,
+        files: [new AttachmentBuilder(transcript.filePath)]
+      }).catch(() => null);
     }
-
-    await user.send({
-      content: `Your ticket transcript for #${channel.name} is attached.`,
-      files: [new AttachmentBuilder(transcript.filePath)]
-    }).catch(() => null);
   }
 
   upsertTicketRecord(channel.guild.id, channel.id, {

@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { getGuildSettings, updateGuildSettings } = require('../storage/guild-settings');
+const { logModerationAction } = require('../utils/mod-log');
 const { parseDuration } = require('../utils/mod-actions');
 
 function parseDurationMinutes(value) {
@@ -120,18 +121,42 @@ module.exports = {
     if (subcommand === 'timeout') {
       const minutes = parseDurationMinutes(interaction.options.getInteger('minutes', true));
       await member.timeout(minutes * 60_000, reason).catch(() => null);
+      await logModerationAction(interaction.guild, getGuildSettings(interaction.guild.id), {
+        action: 'Timeout',
+        target: `${user.tag} (${user.id})`,
+        moderator: interaction.user.tag,
+        reason,
+        duration: `${minutes} minute(s)`,
+        channel: `${interaction.channel.name || interaction.channel.id}`
+      });
       await interaction.reply({ content: `Timed out ${user.tag} for ${minutes} minutes.`, ephemeral: true });
       return;
     }
 
     if (subcommand === 'ban') {
       await interaction.guild.members.ban(user.id, { reason }).catch(() => null);
+      await logModerationAction(interaction.guild, getGuildSettings(interaction.guild.id), {
+        action: 'Ban',
+        target: `${user.tag} (${user.id})`,
+        moderator: interaction.user.tag,
+        reason,
+        duration: 'Permanent',
+        channel: `${interaction.channel.name || interaction.channel.id}`
+      });
       await interaction.reply({ content: `Banned ${user.tag}.`, ephemeral: true });
       return;
     }
 
     if (subcommand === 'kick') {
       await member.kick(reason).catch(() => null);
+      await logModerationAction(interaction.guild, getGuildSettings(interaction.guild.id), {
+        action: 'Kick',
+        target: `${user.tag} (${user.id})`,
+        moderator: interaction.user.tag,
+        reason,
+        duration: 'N/A',
+        channel: `${interaction.channel.name || interaction.channel.id}`
+      });
       await interaction.reply({ content: `Kicked ${user.tag}.`, ephemeral: true });
       return;
     }
@@ -222,20 +247,37 @@ module.exports = {
     if (subcommand === 'timeout') {
       const minutes = parseDurationMinutes(args[2]);
       await member.timeout(minutes * 60_000, reason).catch(() => null);
-      await message.reply({ content: `Timed out ${user.tag} for ${minutes} minutes.`, allowedMentions: { repliedUser: false } }).catch(() => null);
-      return;
-    }
+        await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
+          action: 'Timeout',
+          target: `${user.tag} (${user.id})`,
+          moderator: message.author.tag,
+          reason,
+          duration: `${minutes} minute(s)`,
+          channel: `${message.channel.name || message.channel.id}`
+        });
 
     if (subcommand === 'ban') {
       await message.guild.members.ban(user.id, { reason }).catch(() => null);
-      await message.reply({ content: `Banned ${user.tag}.`, allowedMentions: { repliedUser: false } }).catch(() => null);
-      return;
+        await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
+          action: 'Ban',
+          target: `${user.tag} (${user.id})`,
+          moderator: message.author.tag,
+          reason,
+          duration: 'Permanent',
+          channel: `${message.channel.name || message.channel.id}`
+        });
     }
 
     if (subcommand === 'kick') {
       await member.kick(reason).catch(() => null);
-      await message.reply({ content: `Kicked ${user.tag}.`, allowedMentions: { repliedUser: false } }).catch(() => null);
-      return;
+        await logModerationAction(message.guild, getGuildSettings(message.guild.id), {
+          action: 'Kick',
+          target: `${user.tag} (${user.id})`,
+          moderator: message.author.tag,
+          reason,
+          duration: 'N/A',
+          channel: `${message.channel.name || message.channel.id}`
+        });
     }
 
     if (subcommand === 'warn') {
