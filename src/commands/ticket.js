@@ -83,6 +83,13 @@ function buildTicketCloseConfirmRow() {
   );
 }
 
+function buildTicketDeleteConfirmRow() {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('ticket-delete-confirm').setLabel('Confirm delete').setEmoji('🗑️').setStyle(ButtonStyle.Danger),
+    new ButtonBuilder().setCustomId('ticket-delete-cancel').setLabel('Cancel').setEmoji('❌').setStyle(ButtonStyle.Secondary)
+  );
+}
+
 function buildClosedTicketButtonRow() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('ticket-reopen').setLabel('Reopen').setEmoji('🔓').setStyle(ButtonStyle.Success),
@@ -544,6 +551,20 @@ module.exports = {
         return;
       }
 
+      await interaction.reply({ content: 'Are you sure you want to delete this ticket and send the transcript? This cannot be undone.', ephemeral: true, components: [buildTicketDeleteConfirmRow()] }).catch(() => null);
+      return;
+    }
+
+    if (interaction.customId === 'ticket-delete-confirm') {
+      const ticketOwnerMatch = interaction.channel.topic?.match(/^ticket-owner:(\d+)$/);
+      const isOwner = ticketOwnerMatch?.[1] === interaction.user.id;
+      const isStaff = interaction.memberPermissions.has(PermissionsBitField.Flags.ManageChannels) || interaction.member.roles.cache.has(settings.ticket.supportRoleId);
+
+      if (!isOwner && !isStaff) {
+        await interaction.reply({ content: 'You are not allowed to delete this ticket.', ephemeral: true });
+        return;
+      }
+
       await interaction.reply({ content: 'Deleting ticket and sending transcript...', ephemeral: true }).catch(() => null);
       if (interaction.memberPermissions.has(PermissionsBitField.Flags.ManageChannels) || interaction.member.roles.cache.has(settings.ticket.supportRoleId)) {
         updateStaffStat(interaction.guild.id, interaction.user.id, (current) => ({
@@ -552,6 +573,11 @@ module.exports = {
         }));
       }
       await closeTicketChannel(interaction.channel, interaction.user, 'Deleted with transcript', settings, { deleteChannel: true });
+      return;
+    }
+
+    if (interaction.customId === 'ticket-delete-cancel') {
+      await interaction.reply({ content: 'Ticket delete canceled.', ephemeral: true }).catch(() => null);
       return;
     }
 

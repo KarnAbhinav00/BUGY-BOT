@@ -30,7 +30,7 @@ const categories = {
     label: 'Server Tools',
     description: 'Protection, whitelist, hierarchy and channel control',
     title: 'Server Tools',
-    commands: ['`/config` - manage words, links, greeting and punishments', '`/hierarchy` - view the configured role hierarchy', '`/whitelist` - manage trusted roles and users', '`/antinuke` - configure anti-nuke protection', '`/profile` - view staff stats', '`/prefix list` - view current prefixes', '`/prefix add` - add a new prefix', '`/prefix remove` - remove a prefix', '`/server info` - server overview', '`/server lock` - lock a channel', '`/server unlock` - unlock a channel', '`/server slowmode` - set slowmode', '`/server topic` - set a channel topic', '`/serverstats` - detailed server stats', '`/channelinfo` - inspect a channel', '`/roleinfo` - inspect a role', '`/notes` - manage staff notes', '`/help` - command categories and descriptions']
+    commands: ['`/config` - manage words, links, greeting and punishments', '`/hierarchy` - view the configured role hierarchy', '`/whitelist` - manage trusted roles and users', '`/antinuke` - configure anti-nuke protection', '`/profile` - view staff stats', '`/prefix list` - view current prefixes', '`/prefix add` - add a new prefix', '`/prefix remove` - remove a prefix', '`/server info` - server overview', '`/server lock` - lock a channel', '`/server unlock` - unlock a channel', '`/server slowmode` - set slowmode', '`/server topic` - set a channel topic', '`/serverstats` - detailed server stats', '`/channelinfo` - inspect a channel', '`/roleinfo` - inspect a role', '`/whois` - inspect a member', '`/notes` - manage staff notes', '`/help` - command categories and descriptions']
   }
 };
 
