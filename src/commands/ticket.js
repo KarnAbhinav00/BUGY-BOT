@@ -855,6 +855,8 @@ module.exports = {
     if (subcommand === 'reopen') {
       const settings = getGuildSettings(message.guild.id);
       const ticketRecord = getTicketRecord(settings, message.channel.id);
+
+      if (!isTicketChannel(message.channel) || !ticketRecord) {
         await message.reply('This command only works inside a ticket channel.').catch(() => null);
         return;
       }
