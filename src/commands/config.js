@@ -36,7 +36,7 @@ module.exports = {
         .setName('set')
         .setDescription('Set greeting channel and message')
         .addChannelOption((option) => option.setName('channel').setDescription('Greeting channel').addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement).setRequired(true))
-        .addStringOption((option) => option.setName('message').setDescription('Greeting message').setRequired(true)))
+        .addStringOption((option) => option.setName('message').setDescription('Greeting message. Use {user}, {username}, {server}, {membercount}.').setRequired(true)))
       .addSubcommand((subcommand) => subcommand.setName('disable').setDescription('Disable greetings')))
     .addSubcommandGroup((group) => group
       .setName('protection')

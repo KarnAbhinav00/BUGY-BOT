@@ -53,6 +53,16 @@ module.exports = {
       if (ticketCommand?.handleButton) {
         await ticketCommand.handleButton(interaction);
       }
+      return;
+    }
+
+    if (interaction.customId.startsWith('welcome-')) {
+      const welcomeCommand = client.commands.get('welcome');
+
+      if (welcomeCommand?.handleButton) {
+        await welcomeCommand.handleButton(interaction);
+      }
+      return;
     }
   }
 };

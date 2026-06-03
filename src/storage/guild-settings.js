@@ -6,7 +6,12 @@ const defaultGuildSettings = {
   prefix: config.defaultPrefix,
   prefixes: [config.defaultPrefix],
   welcomeChannelId: '',
-  welcomeMessage: 'Welcome {user} to {server}!',
+  welcomeMessage: `Welcome To Bug Empire
+Read ⁠ properly.
+Follow Discord Tos [https://discord.com/terms](https://discord.com/terms)
+Check out ⁠![:izakaya_lantern:](https://discord.com/assets/2287aa6a938cefb4.svg)・giveaways
+Meet new people ⁠![:pancakes:](https://discord.com/assets/81b90a35157071a6.svg)・chill-chat
+Support required? head over to ⁠![:mailbox_with_mail:](https://discord.com/assets/fedef3c18beeb970.svg)・ticket`,
   leaveChannelId: '',
   leaveMessage: '{user} left {server}.',
   moderationLogChannelId: '',
@@ -46,7 +51,14 @@ const defaultGuildSettings = {
   greeting: {
     enabled: true,
     channelId: '',
-    message: 'Welcome {user} to {server}!'
+    message: `Welcome To Bug Empire
+Read ⁠ properly.
+Follow Discord Tos [https://discord.com/terms](https://discord.com/terms)
+Check out ⁠![:izakaya_lantern:](https://discord.com/assets/2287aa6a938cefb4.svg)・giveaways
+Meet new people ⁠![:pancakes:](https://discord.com/assets/81b90a35157071a6.svg)・chill-chat
+Support required? head over to ⁠![:mailbox_with_mail:](https://discord.com/assets/fedef3c18beeb970.svg)・ticket`,
+    panelChannelId: '',
+    panelMessageId: ''
   },
   staffStats: {},
   notes: {},
@@ -58,6 +70,8 @@ const defaultGuildSettings = {
     panelMessageId: '',
     panelTitle: 'Open a support ticket',
     panelDescription: 'Choose a reason from the dropdown below to open a private ticket with the support team.',
+    panelEmoji: '🎫',
+    staffApplicationsEnabled: false,
     counter: 0,
     panels: [],
     tickets: {},

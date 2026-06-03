@@ -38,6 +38,56 @@ function buildTicketPanelEmbed(settings) {
     .setDescription(description);
 }
 
+function getTicketReasonOptions(settings) {
+  const enabled = settings.ticket?.staffApplicationsEnabled !== false;
+  return ticketReasons.map((reason) => {
+    const option = new StringSelectMenuOptionBuilder()
+      .setLabel(reason.label)
+      .setValue(reason.value)
+      .setDescription(reason.description);
+
+    if (reason.value === 'staff_apply') {
+      if (enabled) {
+        option.setLabel('📝 Staff Apply').setDescription('Apply to join the staff team.');
+      } else {
+        option.setLabel('📝 Staff Apply (currently closed)').setDescription('Applications are temporarily closed.').setDisabled(true);
+      }
+    }
+
+    return option;
+  });
+}
+
+function buildReasonMenu(settings) {
+  return new ActionRowBuilder().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId('ticket-reason-select')
+      .setPlaceholder('🎫 Choose a ticket reason')
+      .addOptions(getTicketReasonOptions(settings))
+  );
+}
+
+async function updateTicketPanelMessage(guild, settings) {
+  if (!settings.ticket.panelChannelId || !settings.ticket.panelMessageId) {
+    return;
+  }
+
+  const channel = guild.channels.cache.get(settings.ticket.panelChannelId);
+  if (!channel?.isTextBased()) {
+    return;
+  }
+
+  try {
+    const panelMessage = await channel.messages.fetch(settings.ticket.panelMessageId);
+    await panelMessage.edit({
+      embeds: [buildTicketPanelEmbed(settings)],
+      components: [buildReasonMenu(settings), buildTicketOpenButtonRow()]
+    });
+  } catch {
+    return;
+  }
+}
+
 function buildTicketStatsEmbed(settings) {
   const tickets = Object.values(settings.ticket.tickets || {});
   const openCount = tickets.filter((ticket) => ticket.status === 'open' || !ticket.status).length;
@@ -59,15 +109,6 @@ function buildTicketStatsEmbed(settings) {
       { name: 'Panel channel', value: settings.ticket.panelChannelId ? `<#${settings.ticket.panelChannelId}>` : 'Not configured', inline: false },
       { name: 'Last ticket', value: lastTicket ? `<@${lastTicket.ownerId}> (${lastTicket.reasonLabel})` : 'No ticket history yet', inline: false }
     );
-}
-
-function buildReasonMenu() {
-  return new ActionRowBuilder().addComponents(
-    new StringSelectMenuBuilder()
-      .setCustomId('ticket-reason-select')
-      .setPlaceholder('🎫 Choose a ticket reason')
-      .addOptions(ticketReasons.map((reason) => new StringSelectMenuOptionBuilder().setLabel(reason.label).setValue(reason.value).setDescription(reason.description)))
-  );
 }
 
 function buildTicketOpenButtonRow() {
@@ -332,7 +373,11 @@ module.exports = {
       .setName('inactivity')
       .setDescription('Set ticket inactivity auto-close timeout.')
       .addIntegerOption((option) => option.setName('minutes').setDescription('Auto-close after minutes').setMinValue(1).setRequired(true))
-      .addIntegerOption((option) => option.setName('reminder_minutes').setDescription('Reminder before auto-close in minutes').setMinValue(1).setRequired(false))),
+      .addIntegerOption((option) => option.setName('reminder_minutes').setDescription('Reminder before auto-close in minutes').setMinValue(1).setRequired(false)))
+    .addSubcommand((subcommand) => subcommand
+      .setName('staffapplications')
+      .setDescription('Enable or disable staff applications on the ticket panel.')
+      .addBooleanOption((option) => option.setName('enabled').setDescription('Enable staff applications').setRequired(true))),
   async execute(interaction) {
     const settings = getGuildSettings(interaction.guild.id);
     const subcommand = interaction.options.getSubcommand();
@@ -368,7 +413,7 @@ module.exports = {
 
       const embed = buildTicketPanelEmbed(getGuildSettings(interaction.guild.id));
 
-      const panelMessage = await channel.send({ embeds: [embed], components: [buildReasonMenu(), buildTicketOpenButtonRow()] });
+      const panelMessage = await channel.send({ embeds: [embed], components: [buildReasonMenu(getGuildSettings(interaction.guild.id)), buildTicketOpenButtonRow()] });
 
       updateGuildSettings(interaction.guild.id, (settings) => ({
         ...settings,
@@ -403,6 +448,26 @@ module.exports = {
       });
 
       await interaction.reply({ content: `Ticket inactivity whitelist ${currentSetting ? 'enabled' : 'disabled'}.`, ephemeral: true });
+      return;
+    }
+
+    if (subcommand === 'staffapplications') {
+      if (!interaction.memberPermissions.has(PermissionsBitField.Flags.ManageChannels)) {
+        await interaction.reply({ content: 'You need Manage Channels to change staff applications.', ephemeral: true });
+        return;
+      }
+
+      const enabled = interaction.options.getBoolean('enabled');
+      const updatedSettings = updateGuildSettings(interaction.guild.id, (current) => ({
+        ...current,
+        ticket: {
+          ...current.ticket,
+          staffApplicationsEnabled: enabled
+        }
+      }));
+
+      await updateTicketPanelMessage(interaction.guild, updatedSettings);
+      await interaction.reply({ content: `Staff applications are now ${enabled ? 'enabled' : 'disabled'} on the ticket panel.`, ephemeral: true });
       return;
     }
 
@@ -662,7 +727,7 @@ module.exports = {
 
     await interaction.deferReply({ ephemeral: true }).catch(() => null);
 
-    if (selectedReason === 'staff_apply') {
+    if (selectedReason === 'staff_apply' && settings.ticket.staffApplicationsEnabled === false) {
       await interaction.editReply({ content: 'Staff applications are currently closed.' }).catch(() => null);
       return;
     }
@@ -716,7 +781,7 @@ module.exports = {
 
     const embed = buildTicketPanelEmbed(getGuildSettings(message.guild.id));
 
-    const panelMessage = await channel.send({ embeds: [embed], components: [buildReasonMenu(), buildTicketOpenButtonRow()] });
+    const panelMessage = await channel.send({ embeds: [embed], components: [buildReasonMenu(settings), buildTicketOpenButtonRow()] });
 
     updateGuildSettings(message.guild.id, (settings) => ({
       ...settings,
@@ -777,6 +842,11 @@ module.exports = {
         return;
       }
 
+      if (selectedReason === 'staff_apply' && settings.ticket.staffApplicationsEnabled === false) {
+        await message.reply({ content: 'Staff applications are currently closed.', allowedMentions: { repliedUser: false } }).catch(() => null);
+        return;
+      }
+
       const ticketChannel = await createTicketChannel(message.guild, message.member, settings, selectedReason);
       const embed = new EmbedBuilder()
         .setColor(0x2ecc71)
@@ -792,6 +862,32 @@ module.exports = {
 
       await ticketChannel.send({ content: `${message.author} <@&${settings.ticket.supportRoleId}>`, embeds: [embed], components: [row] });
       await message.reply({ content: `Your ticket is ready: ${ticketChannel}`, allowedMentions: { repliedUser: false } }).catch(() => null);
+      return;
+    }
+
+    if (subcommand === 'staffapp' || subcommand === 'staffapplications') {
+      if (!message.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) {
+        await message.reply('You need Manage Channels to change staff applications.').catch(() => null);
+        return;
+      }
+
+      const param = args.slice(2).join(' ').trim().toLowerCase();
+      if (!['enable', 'enabled', 'true', 'disable', 'disabled', 'false'].includes(param)) {
+        await message.reply('Usage: !ticket staffapp <enable|disable>').catch(() => null);
+        return;
+      }
+
+      const enabled = ['enable', 'enabled', 'true'].includes(param);
+      const updatedSettings = updateGuildSettings(message.guild.id, (current) => ({
+        ...current,
+        ticket: {
+          ...current.ticket,
+          staffApplicationsEnabled: enabled
+        }
+      }));
+
+      await updateTicketPanelMessage(message.guild, updatedSettings);
+      await message.reply(`Staff applications are now ${enabled ? 'enabled' : 'disabled'} on the ticket panel.`).catch(() => null);
       return;
     }
 

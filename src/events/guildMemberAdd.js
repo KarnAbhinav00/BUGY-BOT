@@ -35,7 +35,8 @@ module.exports = {
       .setColor(0x2ecc71)
       .setTitle(`Welcome to ${member.guild.name}`)
       .setDescription(applyTemplate(greetingMessage, member))
-      .setThumbnail(member.user.displayAvatarURL({ size: 256 }))
+      .setThumbnail(member.user.displayAvatarURL({ size: 128, dynamic: true }))
+      .setImage('https://klipy.com/gifs/welcome-minecraft-1')
       .setFooter({ text: `Member #${member.guild.memberCount}` })
       .setTimestamp();
 
