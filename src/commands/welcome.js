@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField, ChannelType } = require('discord.js');
 const { getGuildSettings, updateGuildSettings } = require('../storage/guild-settings');
+const { isWhitelistedMember } = require('../utils/permissions');
 
 function buildWelcomePanelEmbed(settings) {
   const greeting = settings.greeting || {};
@@ -15,7 +16,8 @@ function buildWelcomePanelEmbed(settings) {
     .addFields(
       { name: 'Status', value: enabled ? 'Enabled' : 'Disabled', inline: true },
       { name: 'Channel', value: currentChannel, inline: true },
-      { name: 'Message', value: messagePreview.length > 1024 ? `${messagePreview.slice(0, 1021)}...` : messagePreview, inline: false }
+      { name: 'Message', value: messagePreview.length > 1024 ? `${messagePreview.slice(0, 1021)}...` : messagePreview, inline: false },
+      { name: 'Template variables', value: '`{user}`, `{mention}`, `{username}`, `{usertag}`, `{userid}`, `{server}`, `{membercount}`', inline: false }
     );
 }
 
@@ -68,7 +70,7 @@ module.exports = {
       .setName('set')
       .setDescription('Set the welcome channel and message.')
       .addChannelOption((option) => option.setName('channel').setDescription('Welcome channel').addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement).setRequired(true))
-      .addStringOption((option) => option.setName('message').setDescription('Welcome text. Use {user}, {username}, {server}, {membercount}. Supports markdown links and emoji text.').setRequired(true)))
+      .addStringOption((option) => option.setName('message').setDescription('Welcome text. Use {user}, {mention}, {username}, {server}, {membercount}.').setRequired(true)))
     .addSubcommand((subcommand) => subcommand
       .setName('panel')
       .setDescription('Create or refresh the welcome setup panel.')
@@ -77,8 +79,10 @@ module.exports = {
       .setName('disable')
       .setDescription('Disable welcome messages.')),
   async execute(interaction) {
-    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await interaction.reply({ content: 'You need Manage Server to use this command.', ephemeral: true });
+    const settings = getGuildSettings(interaction.guild.id);
+
+    if (!isWhitelistedMember(interaction.member, settings)) {
+      await interaction.reply({ content: 'You need to be whitelisted to use this command.', ephemeral: true });
       return;
     }
 
@@ -137,8 +141,10 @@ module.exports = {
     await interaction.reply({ embeds: [embed], ephemeral: true });
   },
   async handleMessage(message) {
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await message.reply({ content: 'You need Manage Server to use this command.', allowedMentions: { repliedUser: false } }).catch(() => null);
+    const settings = getGuildSettings(message.guild.id);
+
+    if (!isWhitelistedMember(message.member, settings)) {
+      await message.reply({ content: 'You need to be whitelisted to use this command.', allowedMentions: { repliedUser: false } }).catch(() => null);
       return;
     }
 
@@ -181,7 +187,7 @@ module.exports = {
     }));
 
     await message.reply({ content: `Welcome messages configured for ${channel}.`, allowedMentions: { repliedUser: false } }).catch(() => null);
-  }
+  },
 
   async handlePrefixPanel(message, channel) {
     const settings = getGuildSettings(message.guild.id);
@@ -199,7 +205,7 @@ module.exports = {
     }));
 
     await message.reply({ content: `Welcome setup panel created in ${channel}.`, allowedMentions: { repliedUser: false } }).catch(() => null);
-  }
+  },
 
   async handleButton(interaction) {
     const settings = getGuildSettings(interaction.guild.id);

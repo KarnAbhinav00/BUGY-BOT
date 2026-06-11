@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType } = require('discord.js');
-const { updateGuildSettings } = require('../storage/guild-settings');
+const { updateGuildSettings, getGuildSettings } = require('../storage/guild-settings');
+const { isWhitelistedMember } = require('../utils/permissions');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -14,8 +15,9 @@ module.exports = {
       .setName('disable')
       .setDescription('Disable leave messages.')),
   async execute(interaction) {
-    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await interaction.reply({ content: 'You need Manage Server to use this command.', ephemeral: true });
+    const settings = getGuildSettings(interaction.guild.id);
+    if (!isWhitelistedMember(interaction.member, settings)) {
+      await interaction.reply({ content: 'You need permission to use this command.', ephemeral: true });
       return;
     }
 
@@ -48,8 +50,9 @@ module.exports = {
     await interaction.reply({ embeds: [embed], ephemeral: true });
   },
   async handleMessage(message) {
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await message.reply({ content: 'You need Manage Server to use this command.', allowedMentions: { repliedUser: false } }).catch(() => null);
+    const settings = getGuildSettings(message.guild.id);
+    if (!isWhitelistedMember(message.member, settings)) {
+      await message.reply({ content: 'You need permission to use this command.', allowedMentions: { repliedUser: false } }).catch(() => null);
       return;
     }
 

@@ -1,4 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { getGuildSettings } = require('../storage/guild-settings');
+const { isWhitelistedMember } = require('../utils/permissions');
 
 function buildServerStatsEmbed(guild) {
   const textChannels = guild.channels.cache.filter((channel) => channel.type === 0 || channel.type === 5).size;
@@ -26,16 +28,18 @@ module.exports = {
     .setName('serverstats')
     .setDescription('Show detailed server stats.'),
   async execute(interaction) {
-    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await interaction.reply({ content: 'You need Manage Server to use this command.', ephemeral: true });
+    const settings = getGuildSettings(interaction.guild.id);
+    if (!isWhitelistedMember(interaction.member, settings)) {
+      await interaction.reply({ content: 'You need permission to use this command.', ephemeral: true });
       return;
     }
 
     await interaction.reply({ embeds: [buildServerStatsEmbed(interaction.guild)], ephemeral: true });
   },
   async handleMessage(message) {
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await message.reply({ content: 'You need Manage Server to use that command.', allowedMentions: { repliedUser: false } }).catch(() => null);
+    const settings = getGuildSettings(message.guild.id);
+    if (!isWhitelistedMember(message.member, settings)) {
+      await message.reply({ content: 'You need permission to use that command.', allowedMentions: { repliedUser: false } }).catch(() => null);
       return;
     }
 

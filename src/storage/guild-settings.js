@@ -51,12 +51,13 @@ Support required? head over to ⁠![:mailbox_with_mail:](https://discord.com/ass
   greeting: {
     enabled: true,
     channelId: '',
-    message: `Welcome To Bug Empire
-Read ⁠ properly.
-Follow Discord Tos [https://discord.com/terms](https://discord.com/terms)
-Check out ⁠![:izakaya_lantern:](https://discord.com/assets/2287aa6a938cefb4.svg)・giveaways
-Meet new people ⁠![:pancakes:](https://discord.com/assets/81b90a35157071a6.svg)・chill-chat
-Support required? head over to ⁠![:mailbox_with_mail:](https://discord.com/assets/fedef3c18beeb970.svg)・ticket`,
+    title: 'Welcome to the EMPIRE',
+    description: `Read ⁠ properly.
+Follow Discord Tos https://discord.com/terms
+Check out ⁠https://discord.com/channels/1274360936748290108/1492479153973493850
+Meet new people ⁠https://discord.com/channels/1274360936748290108/1490681368584130631
+Support required? head over to ⁠https://discord.com/channels/1274360936748290108/1490681377644089496`,
+    message: '{mention}',
     panelChannelId: '',
     panelMessageId: ''
   },

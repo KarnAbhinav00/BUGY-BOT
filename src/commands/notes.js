@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { getGuildSettings, updateGuildSettings } = require('../storage/guild-settings');
+const { isWhitelistedMember } = require('../utils/permissions');
 
 function getNotes(settings, userId) {
   return settings.notes?.[userId] || [];
@@ -42,8 +43,9 @@ module.exports = {
       .addUserOption((option) => option.setName('user').setDescription('Member to inspect').setRequired(true))
       .addIntegerOption((option) => option.setName('index').setDescription('1-based note index').setMinValue(1).setRequired(true))),
   async execute(interaction) {
-    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await interaction.reply({ content: 'You need Manage Server to use this command.', ephemeral: true });
+    const settings = getGuildSettings(interaction.guild.id);
+    if (!isWhitelistedMember(interaction.member, settings)) {
+      await interaction.reply({ content: 'You need permission to use this command.', ephemeral: true });
       return;
     }
 
@@ -76,8 +78,9 @@ module.exports = {
     await interaction.reply({ content: `Removed note ${index + 1} for ${targetUser.tag}.`, ephemeral: true });
   },
   async handleMessage(message) {
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await message.reply({ content: 'You need Manage Server to use that command.', allowedMentions: { repliedUser: false } }).catch(() => null);
+    const settings = getGuildSettings(message.guild.id);
+    if (!isWhitelistedMember(message.member, settings)) {
+      await message.reply({ content: 'You need permission to use that command.', allowedMentions: { repliedUser: false } }).catch(() => null);
       return;
     }
 

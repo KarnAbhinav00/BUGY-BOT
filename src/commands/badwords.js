@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { getGuildSettings, updateGuildSettings, defaultGuildSettings } = require('../storage/guild-settings');
+const { isWhitelistedMember } = require('../utils/permissions');
 
 function normalizeListInput(value) {
   return String(value || '')
@@ -45,8 +46,9 @@ module.exports = {
       .setName('reset')
       .setDescription('Restore the preset banned words and links.')),
   async execute(interaction) {
-    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await interaction.reply({ content: 'You need Manage Server to use this command.', ephemeral: true });
+    const settings = getGuildSettings(interaction.guild.id);
+    if (!isWhitelistedMember(interaction.member, settings)) {
+      await interaction.reply({ content: 'You need permission to use this command.', ephemeral: true });
       return;
     }
 
@@ -105,8 +107,8 @@ module.exports = {
     const settings = getGuildSettings(message.guild.id);
     const subcommand = (args[1] || 'list').toLowerCase();
 
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await message.reply({ content: 'You need Manage Server to use that command.', allowedMentions: { repliedUser: false } }).catch(() => null);
+    if (!isWhitelistedMember(message.member, settings)) {
+      await message.reply({ content: 'You need permission to use that command.', allowedMentions: { repliedUser: false } }).catch(() => null);
       return;
     }
 

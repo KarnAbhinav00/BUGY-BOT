@@ -1,3 +1,5 @@
+const { PermissionsBitField } = require('discord.js');
+
 function hasRoleId(member, roleIds) {
   return Array.isArray(roleIds) && roleIds.some((roleId) => member.roles.cache.has(roleId));
 }
@@ -31,6 +33,14 @@ function isWhitelistedMember(member, settings) {
     || hasRoleId(member, helperRoleIds)
     || hasRoleId(member, chatModRoleIds)
     || hasRoleId(member, vcModRoleIds);
+}
+
+function hasCommandAccess(member, settings) {
+  if (isWhitelistedMember(member, settings)) {
+    return true;
+  }
+
+  return !settings?.whitelist?.ownerIds?.length && member?.permissions?.has(PermissionsBitField.Flags.ManageGuild);
 }
 
 function getEscalationRole(guild, settings, member) {

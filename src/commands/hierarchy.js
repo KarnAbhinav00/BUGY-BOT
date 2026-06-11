@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { getGuildSettings } = require('../storage/guild-settings');
+const { isWhitelistedMember } = require('../utils/permissions');
 
 function describeRole(guild, roleId) {
   const role = guild.roles.cache.get(roleId);
@@ -15,12 +16,11 @@ module.exports = {
     .setName('hierarchy')
     .setDescription('Show the configured bot command hierarchy.'),
   async execute(interaction) {
-    if (!interaction.memberPermissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await interaction.reply({ content: 'You need Manage Server to use this command.', ephemeral: true });
+    const settings = getGuildSettings(interaction.guild.id);
+    if (!isWhitelistedMember(interaction.member, settings)) {
+      await interaction.reply({ content: 'You need permission to use this command.', ephemeral: true });
       return;
     }
-
-    const settings = getGuildSettings(interaction.guild.id);
     const embed = new EmbedBuilder()
       .setColor(0x5865f2)
       .setTitle('Bot Command Hierarchy')
@@ -34,12 +34,10 @@ module.exports = {
     await interaction.reply({ embeds: [embed], ephemeral: true });
   },
   async handleMessage(message) {
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await message.reply({ content: 'You need Manage Server to use that command.', allowedMentions: { repliedUser: false } }).catch(() => null);
-      return;
-    }
-
     const settings = getGuildSettings(message.guild.id);
+    if (!isWhitelistedMember(message.member, settings)) {
+      await message.reply({ content: 'You need permission to use that command.', allowedMentions: { repliedUser: false } }).catch(() => null);
+      return;
     const embed = new EmbedBuilder()
       .setColor(0x5865f2)
       .setTitle('Bot Command Hierarchy')

@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { getGuildSettings, updateGuildSettings } = require('../storage/guild-settings');
 const { isTicketChannel } = require('../utils/ticket-history');
+const { isWhitelistedMember } = require('../utils/permissions');
 const { updateStaffStat } = require('../utils/staff-stats');
 
 const ESCALATION_TICKET_ACCESS_ROLE_ID = '1500377466298962121';
@@ -80,10 +81,8 @@ module.exports = {
     .addStringOption((option) => option.setName('reason').setDescription('Reason for the escalation').setRequired(false)),
   async execute(interaction) {
     const settings = getGuildSettings(interaction.guild.id);
-    const allowed = interaction.memberPermissions.has(PermissionsBitField.Flags.ManageGuild);
-
-    if (!allowed) {
-      await interaction.reply({ content: 'You need Manage Server to use this command.', ephemeral: true });
+    if (!isWhitelistedMember(interaction.member, settings)) {
+      await interaction.reply({ content: 'You need permission to use this command.', ephemeral: true });
       return;
     }
 
@@ -103,10 +102,8 @@ module.exports = {
   },
   async handleMessage(message, args = []) {
     const settings = getGuildSettings(message.guild.id);
-    const allowed = message.member.permissions.has(PermissionsBitField.Flags.ManageGuild);
-
-    if (!allowed) {
-      await message.reply({ content: 'You need Manage Server to use that command.', allowedMentions: { repliedUser: false } }).catch(() => null);
+    if (!isWhitelistedMember(message.member, settings)) {
+      await message.reply({ content: 'You need permission to use that command.', allowedMentions: { repliedUser: false } }).catch(() => null);
       return;
     }
 

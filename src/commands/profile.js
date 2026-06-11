@@ -13,7 +13,7 @@ module.exports = {
     const member = await interaction.guild.members.fetch(user.id).catch(() => null);
     const settings = getGuildSettings(interaction.guild.id);
 
-    if (member && !isWhitelistedMember(member, settings) && !interaction.memberPermissions.has(PermissionsBitField.Flags.ManageGuild)) {
+    if (member && !isWhitelistedMember(member, settings)) {
       await interaction.reply({ content: 'That profile is only visible for staff members.', ephemeral: true });
       return;
     }
@@ -37,7 +37,7 @@ module.exports = {
     const member = await message.guild.members.fetch(user.id).catch(() => null);
     const settings = getGuildSettings(message.guild.id);
 
-    if (member && !isWhitelistedMember(member, settings) && !message.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
+    if (member && !isWhitelistedMember(member, settings)) {
       await message.reply({ content: 'That profile is only visible for staff members.', allowedMentions: { repliedUser: false } }).catch(() => null);
       return;
     }
