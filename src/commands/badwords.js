@@ -46,14 +46,14 @@ module.exports = {
       .setName('reset')
       .setDescription('Restore the preset banned words and links.')),
   async execute(interaction) {
-    const settings = getGuildSettings(interaction.guild.id);
+
     if (!isWhitelistedMember(interaction.member, settings)) {
       await interaction.reply({ content: 'You need permission to use this command.', ephemeral: true });
       return;
     }
 
     const subcommand = interaction.options.getSubcommand();
-    const settings = getGuildSettings(interaction.guild.id);
+  
 
     if (subcommand === 'list') {
       await interaction.reply({ embeds: [buildBadWordsEmbed(settings)], ephemeral: true });
